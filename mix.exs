@@ -54,7 +54,9 @@ defmodule ExAudit.Mixfile do
     [
       check: [
         "clean",
+        "deps.unlock --check-unused",
         "compile --all-warnings --warnings-as-errors",
+        "deps.unlock --check-unused",
         "test --warnings-as-errors",
       ]
     ]
