@@ -29,8 +29,8 @@ jobs:
           otp-version: ${{ matrix.otp }}
           build-app: false
 
-      # - name: Check for unused deps
-      #   run: mix deps.unlock --check-unused
+      - name: Check for unused deps
+        run: mix deps.unlock --check-unused
 
       # - name: Check code formatting
       #   run: mix format --check-formatted
