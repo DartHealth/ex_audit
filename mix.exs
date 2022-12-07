@@ -4,6 +4,7 @@ defmodule ExAudit.Mixfile do
   def project do
     [
       description: "Ecto auditing library that transparently tracks changes and can revert them",
+      aliases: aliases(),
       app: :ex_audit,
       version: "0.9.0",
       elixir: "~> 1.11",
@@ -11,7 +12,10 @@ defmodule ExAudit.Mixfile do
       deps: deps(),
       elixirc_paths: paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [coveralls: :test],
+      preferred_cli_env: [
+        check: :test,
+        coveralls: :test
+      ],
       source_url: "https://github.com/zenneriot/ex_audit",
       package: [
         licenses: ["MIT"],
@@ -43,6 +47,16 @@ defmodule ExAudit.Mixfile do
     [
       mod: {ExAudit, []},
       extra_applications: [:logger]
+    ]
+  end
+
+  defp aliases do
+    [
+      check: [
+        "clean",
+        "compile --all-warnings --warnings-as-errors",
+        "test --warnings-as-errors",
+      ]
     ]
   end
 
