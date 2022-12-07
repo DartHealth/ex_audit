@@ -14,7 +14,8 @@ defmodule ExAudit.Mixfile do
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         check: :test,
-        coveralls: :test
+        coveralls: :test,
+        "coveralls.json": :test
       ],
       source_url: "https://github.com/zenneriot/ex_audit",
       package: [
@@ -70,7 +71,7 @@ defmodule ExAudit.Mixfile do
       {:ecto, ">= 3.0.0"},
       {:ecto_sql, ">= 3.0.0"},
       {:postgrex, "~> 0.15", only: :test},
-      {:excoveralls, "~> 0.7", only: :test},
+      {:excoveralls, "~> 0.15", only: :test},
       {:ex_doc, ">= 0.0.0", runtime: false, only: :dev},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false}
     ]
