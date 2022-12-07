@@ -49,6 +49,7 @@ defmodule ExAudit.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ecto, ">= 3.0.0"},
       {:ecto_sql, ">= 3.0.0"},
       {:postgrex, "~> 0.15", only: :test},
