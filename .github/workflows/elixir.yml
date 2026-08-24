@@ -50,7 +50,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # The mix steps below execute dependency code; don't leave a
           # usable token behind in .git/config for them.
@@ -64,7 +64,7 @@ jobs:
 
       # Keyed on the resolved versions: _build artifacts are not portable
       # between Elixir/OTP releases.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: |
             deps
