@@ -6,6 +6,10 @@ on:
     branches: [master]
   pull_request:
 
+# The repository default is read-write; this workflow only reads code.
+permissions:
+  contents: read
+
 env:
   MIX_ENV: test
 
@@ -47,6 +51,10 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v5
+        with:
+          # The mix steps below execute dependency code; don't leave a
+          # usable token behind in .git/config for them.
+          persist-credentials: false
 
       - uses: erlef/setup-beam@v1
         id: beam
