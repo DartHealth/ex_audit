@@ -1,7 +1,7 @@
 defmodule ExAudit.Schema do
   def insert_all(module, name, schema_or_source, entries, tuplet = {_adapter_meta, opts}) do
-    # TODO!
-    opts = augment_opts(opts)
+    # TODO! the augmented opts are not passed on yet, so insert_all is not tracked
+    _opts = augment_opts(opts)
     Ecto.Repo.Schema.insert_all(module, name, schema_or_source, entries, tuplet)
   end
 
