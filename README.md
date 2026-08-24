@@ -53,7 +53,7 @@ def deps do
 end
 ```
 
-For older ecto versions than 3.2, check out what to do in the [Ecto Versions](#ecto-versions) section.
+Requires Elixir ~> 1.17 (on Erlang/OTP 27 or newer) and Ecto ~> 3.12.
 
 You have to hook `ExAudit.Repo` to your repo:
 

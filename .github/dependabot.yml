@@ -1,12 +1,31 @@
 version: 2
 updates:
-- package-ecosystem: "github-actions"
-  directory: "/"
-  schedule:
-    interval: "monthly"
-  open-pull-requests-limit: 99
-- package-ecosystem: mix
-  directory: "/"
-  schedule:
-    interval: "monthly"
-  open-pull-requests-limit: 99
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      # The workflow pins only three actions; one PR per month is plenty.
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "mix"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    groups:
+      # ecto_sql pins ecto to a matching minor (~> 3.14.0) and postgrex is
+      # resolved against both, so bumping any of them alone produces a PR
+      # that either fails to resolve or fails CI. They have to move together.
+      ecto:
+        patterns:
+          - "ecto"
+          - "ecto_sql"
+          - "postgrex"
+      # Docs/test tooling only -- never shipped to consumers of the library.
+      dev-deps:
+        patterns:
+          - "excoveralls"
+          - "ex_doc"
+          - "mix_test_watch"

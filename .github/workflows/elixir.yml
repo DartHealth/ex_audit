@@ -1,21 +1,43 @@
 name: Elixir
-on: push
+on:
+  # Pushes to branches with an open PR are covered by the pull_request
+  # trigger; filtering here keeps the matrix from running twice.
+  push:
+    branches: [master]
+  pull_request:
+
+# The repository default is read-write; this workflow only reads code.
+permissions:
+  contents: read
 
 env:
   MIX_ENV: test
 
-# https://github.com/elixir-lang/elixir/blob/master/lib/elixir/pages/compatibility-and-deprecations.md
+# Version support policy:
+#   * Elixir: the branches still receiving security patches
+#     https://hexdocs.pm/elixir/compatibility-and-deprecations.html
+#   * Erlang/OTP: the three most recent majors, which is what the OTP team maintains
+# Elixir 1.16 and older are excluded because they cannot run on a maintained OTP.
 jobs:
-  elixir_1_13:
+  test:
     runs-on: ubuntu-latest
-    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    name: Elixir ${{matrix.elixir}} / OTP ${{matrix.otp}}
     strategy:
+      fail-fast: false
       matrix:
-        otp: [22.x, 23.x, 24.x]
-        elixir: [1.13.x]
+        include:
+          - elixir: "1.17.x"
+            otp: "27.x"
+          - elixir: "1.18.x"
+            otp: "27.x"
+          - elixir: "1.19.x"
+            otp: "28.x"
+          - elixir: "1.20.x"
+            otp: "29.x"
+            lint: true
     services:
       postgres:
-        image: postgres:14
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -28,99 +50,41 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v2
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@v5
         with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-      - uses: actions/cache@v3
-        with:
-          path: |
-            deps
-            _build
-          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-mix-
-      - run: mix do deps.get
-      # - run: mix compile --warnings-as-errors
-      - run: mix format --dry-run --check-formatted
-      - run: mix test
+          # The mix steps below execute dependency code; don't leave a
+          # usable token behind in .git/config for them.
+          persist-credentials: false
 
-  elixir_1_12:
-    runs-on: ubuntu-latest
-    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    strategy:
-      matrix:
-        otp: [22.x, 23.x, 24.x]
-        elixir: [1.12.x]
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ex_audit_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
-      - uses: actions/cache@v3
-        with:
-          path: |
-            deps
-            _build
-          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-mix-
-      - run: mix do deps.get
-      # - run: mix compile --warnings-as-errors
-      - run: mix format --dry-run --check-formatted
-      - run: mix test
 
-  elixir_1_11:
-    runs-on: ubuntu-latest
-    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    strategy:
-      matrix:
-        otp: [21.x, 22.x, 23.x, 24.x]
-        elixir: [1.11.x]
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ex_audit_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v2
-      - uses: erlef/setup-beam@v1
-        with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-      - uses: actions/cache@v3
+      # Keyed on the resolved versions: _build artifacts are not portable
+      # between Elixir/OTP releases.
+      - uses: actions/cache@v4
         with:
           path: |
             deps
             _build
-          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          key: ${{runner.os}}-mix-${{steps.beam.outputs.elixir-version}}-${{steps.beam.outputs.otp-version}}-${{hashFiles('**/mix.lock')}}
           restore-keys: |
-            ${{ runner.os }}-mix-
-      - run: mix do deps.get
-      # - run: mix compile --warnings-as-errors
+            ${{runner.os}}-mix-${{steps.beam.outputs.elixir-version}}-${{steps.beam.outputs.otp-version}}-
+
+      - run: mix deps.get
+
+      - run: mix deps.unlock --check-unused
+        if: matrix.lint
+
+      - run: mix format --check-formatted
+        if: matrix.lint
+
+      - run: mix compile --warnings-as-errors
+        if: matrix.lint
+
+      - run: mix compile
+        if: ${{ !matrix.lint }}
+
       - run: mix test
