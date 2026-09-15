@@ -4,8 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     groups:
-      # The workflow pins only three actions; one PR per month is plenty.
+      # Only a handful of actions are pinned; one PR per month is plenty.
       actions:
         patterns: ["*"]
 
@@ -13,6 +15,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       # ecto_sql pins ecto to a matching minor (~> 3.14.0) and postgrex is
